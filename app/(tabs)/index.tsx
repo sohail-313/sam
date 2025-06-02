@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
-import { View, Text, FlatList, Pressable } from 'react-native';
-import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
+import EmojiPlaceholderIcon from "@/components/icons/EmojiPlaceholderIcon";
+import { createMaterialTopTabNavigator } from "@react-navigation/material-top-tabs";
+import React, { useMemo, useRef, useState } from "react";
+import { FlatList, ImageBackground, Pressable, Text, View } from "react-native";
+import AntDesign from "@expo/vector-icons/AntDesign";
+import BottomSheet from "@gorhom/bottom-sheet";
 
 const Tab = createMaterialTopTabNavigator();
-
 type Message = {
   id: string;
   sender: string;
@@ -34,15 +36,11 @@ type MessagesScreenProps = {
 const EmojiReactionBar: React.FC<{
   onReact: (emoji: string) => void;
 }> = ({ onReact }) => {
-  const emojis = ['👍', '😂', '❤️', '😮', '😢'];
+  const emojis = ["👍", "😂", "❤️", "😮", "😢"];
   return (
     <View className="flex-row mt-2 space-x-2">
       {emojis.map((emoji) => (
-        <Text
-          key={emoji}
-          onPress={() => onReact(emoji)}
-          className="text-xl"
-        >
+        <Text key={emoji} onPress={() => onReact(emoji)} className="text-xl">
           {emoji}
         </Text>
       ))}
@@ -90,17 +88,16 @@ const MessageItem: React.FC<MessageItemProps> = ({
 
       {/* Reaction or Toggle Icon */}
       <View className="flex-row items-center justify-between mt-2">
-        <View />
-        {message.reaction ? (
+        {!message.reaction ? (
+          <Pressable onPress={handleReactionToggle}>
+            <EmojiPlaceholderIcon />
+          </Pressable>
+        ) : (
           <Text
             className="text-xl"
-            onPress={() => onReact(message.id, message.reaction!)} // toggle off
+            onPress={() => onReact(message.id, message.reaction!)}
           >
             {message.reaction}
-          </Text>
-        ) : (
-          <Text className="text-2xs" onPress={handleReactionToggle}>
-            {isSelected ? '➖' : '➕'}
           </Text>
         )}
       </View>
@@ -127,7 +124,7 @@ const MessagesScreen: React.FC<MessagesScreenProps> = ({
   setSelectedMessageId,
 }) => {
   const filteredMessages =
-    groupName === 'All'
+    groupName === "All"
       ? messages
       : messages.filter((msg) => msg.group === groupName);
 
@@ -151,44 +148,44 @@ const MessagesScreen: React.FC<MessagesScreenProps> = ({
 const FYIScreen: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
-      id: '1',
-      sender: 'Me',
-      text: 'Building FYI',
-      time: '4:00',
+      id: "1",
+      sender: "Me",
+      text: "Building FYI",
+      time: "4:00",
       isRead: true,
-      group: 'Office',
+      group: "Office",
     },
     {
-      id: '2',
-      sender: 'Nome',
-      text: 'Shayari session at 10:00 PM in lounge',
-      time: '9:41',
+      id: "2",
+      sender: "Nome",
+      text: "Shayari session at 10:00 PM in lounge",
+      time: "9:41",
       isRead: false,
-      group: 'Family',
+      group: "Family",
     },
     {
-      id: '3',
-      sender: 'BD',
-      text: 'Will be in office tomorrow',
-      time: '10:15',
+      id: "3",
+      sender: "BD",
+      text: "Will be in office tomorrow",
+      time: "10:15",
       isRead: false,
-      group: 'Office',
+      group: "Office",
     },
     {
-      id: '4',
-      sender: 'Mom',
-      text: 'Sunday Special Biryani',
-      time: '2:30',
+      id: "4",
+      sender: "Mom",
+      text: "Sunday Special Biryani",
+      time: "2:30",
       isRead: true,
-      group: 'Family',
+      group: "Family",
     },
     {
-      id: '5',
-      sender: 'Jaf',
-      text: 'Bike trip planned this Sunday',
-      time: '7:22',
+      id: "5",
+      sender: "Jaf",
+      text: "Bike trip planned this Sunday",
+      time: "7:22",
       isRead: false,
-      group: 'BFF',
+      group: "BFF",
     },
   ]);
 
@@ -197,7 +194,7 @@ const FYIScreen: React.FC = () => {
   );
 
   const unreadCount = messages.filter((msg) => !msg.isRead).length;
-  const groups = ['All', ...new Set(messages.map((msg) => msg.group))];
+  const groups = ["All", ...new Set(messages.map((msg) => msg.group))];
 
   // Reaction toggle handler
   const handleReaction = (id: string, emoji: string) => {
@@ -213,25 +210,53 @@ const FYIScreen: React.FC = () => {
     );
   };
 
+  const bottomSheetRef = useRef<BottomSheet>(null);
+  const snapPoints = useMemo(() => ["25%"], []);
+  const openBottomSheet = () => {
+    bottomSheetRef.current?.expand();
+  };
+
   return (
     <View className="flex-1">
       {/* Header */}
       <View className="p-4">
         <View className="flex-row items-center justify-between">
-          <Text className="text-xl font-bold">FYI ({unreadCount})</Text>
+          <Text className="text-lg font-jakartaBold">FYI ({unreadCount})</Text>
         </View>
       </View>
+      {/* My Fyis */}
+      <View className="flex-row gap-4 px-4 py-3 items-center">
+        <ImageBackground
+          source={{
+            uri: "https://lh3.googleusercontent.com/aida-public/AB6AXuBbfZ70XlFBRq_Qd2pzMgq0iw0OdEH2YSGqsgp9eKaI8NPX1qYu7pSc3NX8cSd_F50cfP8myD9-tvD36H1HmHiBVHAYnzi8dcfGDBB_DxgLKpICTO-wzVW7En9pmMNhAIEU8a0zNLah7tfjDXw_o5fkynv9JDpUCaf6dWpJdDz9g25S1S50gMR_NyyIVNy-VbeFC69qDCUrwuJF_KUXZyGqmvBvGNglcC9bmJnc8rMpT7Muh5qb0mOhzWjBdz7wSFOA4MtO9fekL-7c",
+          }}
+          className="h-[70px] w-[70px] rounded-full bg-cover bg-center"
+          imageStyle={{ borderRadius: 9999 }}
+        />
+        <View className="flex-1 justify-center">
+          <Text className="text-[#121416] font-jakartaMedium text-base">
+            Me
+          </Text>
+          <Text className="text-[#6a7681] font-jakarta text-sm">
+            Just finished a great workout at the gym. Feeling energized!
+          </Text>
+          <Text className="text-[#6a7681] font-jakarta text-sm">10m ago</Text>
+        </View>
 
+        <Pressable onPress={openBottomSheet}>
+          <AntDesign name="ellipsis1" size={24} color="#6a7681" />
+        </Pressable>
+      </View>
       {/* Tabs */}
       <Tab.Navigator
         screenOptions={{
-          tabBarActiveTintColor: '#000',
-          tabBarInactiveTintColor: '#999',
-          tabBarStyle: { backgroundColor: '#f0f0f0' },
-          tabBarIndicatorStyle: { backgroundColor: '#000' },
+          tabBarActiveTintColor: "#000",
+          tabBarInactiveTintColor: "#999",
+          tabBarStyle: { backgroundColor: "#f0f0f0" },
+          tabBarIndicatorStyle: { backgroundColor: "#000" },
           tabBarScrollEnabled: true,
-          tabBarItemStyle: { width: 'auto' },
-          tabBarLabelStyle: { textTransform: 'none' },
+          tabBarItemStyle: { width: "auto" },
+          tabBarLabelStyle: { textTransform: "none" },
         }}
       >
         {groups.map((group) => (
@@ -250,6 +275,7 @@ const FYIScreen: React.FC = () => {
           />
         ))}
       </Tab.Navigator>
+      
     </View>
   );
 };
