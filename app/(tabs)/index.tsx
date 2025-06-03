@@ -23,12 +23,21 @@ import {
 const Tab = createMaterialTopTabNavigator();
 
 // Updated Types based on your data model
+type Contact = {
+  phoneNumber: string;
+  savedName: string;
+};
+
 type User = {
   uid: string;
+  phoneNumber: string;
   name: string;
-  phone: string;
-  profilePicture?: string;
+  profilePictureUrl?: string;
+  contacts: Contact[];
+  mutualContacts: string[]; // Array of userIds who are mutual contacts
+  contactsLastSynced?: Timestamp;
   createdAt: Timestamp;
+  updatedAt: Timestamp;
 };
 
 type Group = {
@@ -355,10 +364,18 @@ class FYIService {
     try {
       const userData = {
         uid: this.currentUserId,
+        phoneNumber: "+911234567890",
         name: "Sohail",
-        phone: "+911234567890",
-        profilePicture: "https://lh3.googleusercontent.com/aida-public/AB6AXuBbfZ70XlFBRq_Qd2pzMgq0iw0OdEH2YSGqsgp9eKaI8NPX1qYu7pSc3NX8cSd_F50cfP8myD9-tvD36H1HmHiBVHAYnzi8dcfGDBB_DxgLKpICTO-wzVW7En9pmMNhAIEU8a0zNLah7tfjDXw_o5fkynv9JDpUCaf6dWpJdDz9g25S1S50gMR_NyyIVNy-VbeFC69qDCUrwuJF_KUXZyGqmvBvGNglcC9bmJnc8rMpT7Muh5qb0mOhzWjBdz7wSFOA4MtO9fekL-7c",
-        createdAt: Timestamp.now()
+        profilePictureUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuBbfZ70XlFBRq_Qd2pzMgq0iw0OdEH2YSGqsgp9eKaI8NPX1qYu7pSc3NX8cSd_F50cfP8myD9-tvD36H1HmHiBVHAYnzi8dcfGDBB_DxgLKpICTO-wzVW7En9pmMNhAIEU8a0zNLah7tfjDXw_o5fkynv9JDpUCaf6dWpJdDz9g25S1S50gMR_NyyIVNy-VbeFC69qDCUrwuJF_KUXZyGqmvBvGNglcC9bmJnc8rMpT7Muh5qb0mOhzWjBdz7wSFOA4MtO9fekL-7c",
+        contacts: [
+          { phoneNumber: "+919876543210", savedName: "Mom" },
+          { phoneNumber: "+919876543211", savedName: "Dad" },
+          { phoneNumber: "+919876543212", savedName: "Sister" }
+        ],
+        mutualContacts: [], // Will be populated by sync function
+        contactsLastSynced: Timestamp.now(),
+        createdAt: Timestamp.now(),
+        updatedAt: Timestamp.now()
       };
 
       await setDoc(doc(db, "users", this.currentUserId), userData);
@@ -443,7 +460,7 @@ const FYIScreen: React.FC = () => {
     // Get sender info
     const sender = users.get(fyi.senderUserId);
     fyi.senderName = sender?.name || 'Unknown User';
-    fyi.senderProfilePic = sender?.profilePicture;
+    fyi.senderProfilePic = sender?.profilePictureUrl;
 
     // Get group info if applicable
     if (fyi.targetType === 'group' && fyi.targetId) {
@@ -516,7 +533,7 @@ const FYIScreen: React.FC = () => {
       <View className="flex-row gap-4 px-4 py-3 items-center border-b border-gray-100">
         <ImageBackground
           source={{
-            uri: currentUser?.profilePicture || "https://via.placeholder.com/70"
+            uri: currentUser?.profilePictureUrl || "https://via.placeholder.com/70"
           }}
           className="h-[70px] w-[70px] rounded-full bg-cover bg-center"
           imageStyle={{ borderRadius: 9999 }}
