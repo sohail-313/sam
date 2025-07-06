@@ -11,7 +11,6 @@ import { useRouter, useLocalSearchParams } from "expo-router";
 import { useAuth } from "@/auth/AuthProvider";
 import AuthService from "@/services/authService";
 
-
 export default function OTPVerificationScreen() {
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [isLoading, setIsLoading] = useState(false);
@@ -58,7 +57,12 @@ export default function OTPVerificationScreen() {
         // Refresh the auth context
         await refreshUser();
         // Navigate to main app
-        router.replace("/(tabs)" as any);
+        router.replace({
+          pathname: "/auth/name-input",
+          params: {
+            phoneNumber: phoneNumber as string,
+          },
+        } as any);
       } else {
         Alert.alert("Verification Failed", "Invalid OTP. Please try again.");
         // Clear OTP inputs

@@ -6,6 +6,7 @@ import { loadFonts } from "@/utils/fonts";
 import { useEffect } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AuthProvider } from "@/auth/AuthProvider";
+import { FYIProvider } from "@/contexts/FYIProvider";
 
 export default function RootLayout() {
   useEffect(() => {
@@ -19,7 +20,9 @@ export default function RootLayout() {
     <SafeAreaView className="flex-1">
       <GluestackUIProvider mode="light">
         <AuthProvider>
-          <Stack screenOptions={{ headerShown: false }} />
+          <FYIProvider>
+            <Stack screenOptions={{ headerShown: false }} />
+          </FYIProvider>
         </AuthProvider>
       </GluestackUIProvider>
     </SafeAreaView>
